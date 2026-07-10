@@ -31,14 +31,14 @@ pipeline {
         }
         stage('Deploy to EKS') {
             steps {
-                sh """
-                    aws eks update-kubeconfig --name zomato-eks --region ${AWS_REGION}
-                    kubectl apply -f Kubernetes/deployment.yaml
-                    kubectl apply -f Kubernetes/service.yaml
-                    kubectl set image deployment/zomato zomato=${ECR_URI}:${IMAGE_TAG}
-                    kubectl rollout status deployment/zomato --timeout=300s
-                """
+                withAWS(credentials: 'aws-creds', region: "${AWS_REGION}") {
+                    sh """
+                        aws eks update-kubeconfig --name zomato-eks --region ${AWS_REGION}
+                        kubectl apply -f Kubernetes/deployment.yaml
+                        kubectl apply -f Kubernetes/service.yaml
+                        kubectl set image deployment/zomato zomato=${ECR_URI}:${IMAGE_TAG}
+                        kubectl rollout status deployment/zomato --timeout=300s
+                    """
+                }
             }
         }
-    }
-}
