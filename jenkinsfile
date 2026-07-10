@@ -1,5 +1,6 @@
 pipeline {
     agent any
+
     environment {
         AWS_ACCOUNT_ID = '121846058083'
         AWS_REGION     = 'us-east-1'
@@ -7,17 +8,20 @@ pipeline {
         IMAGE_TAG      = "${BUILD_NUMBER}"
         ECR_URI        = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}"
     }
+
     stages {
         stage('Checkout') {
             steps {
                 git branch: 'master', url: 'https://github.com/rohanj722/Zomato.git'
             }
         }
+
         stage('Docker Build') {
             steps {
                 sh "docker build -t ${ECR_REPO}:${IMAGE_TAG} ."
             }
         }
+
         stage('Push to ECR') {
             steps {
                 withAWS(credentials: 'aws-creds', region: "${AWS_REGION}") {
@@ -29,6 +33,7 @@ pipeline {
                 }
             }
         }
+
         stage('Deploy to EKS') {
             steps {
                 withAWS(credentials: 'aws-creds', region: "${AWS_REGION}") {
@@ -42,3 +47,5 @@ pipeline {
                 }
             }
         }
+    }
+}
